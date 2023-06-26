@@ -1,6 +1,7 @@
 package com.example.todo.userapi.api;
 
 import com.example.todo.exception.DuplicatedEmailException;
+import com.example.todo.exception.NoRegisteredArgumentsException;
 import com.example.todo.userapi.dto.UserSignUpResponseDTO;
 import com.example.todo.userapi.dto.request.LoginRequestDTO;
 import com.example.todo.userapi.dto.request.UserRequestSignUpDTO;
@@ -8,7 +9,6 @@ import com.example.todo.userapi.dto.response.LoginResponseDTO;
 import com.example.todo.userapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.cache.NoCacheRegionFactoryAvailableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 public class UserController {
 
     private final UserService userService;
@@ -28,10 +28,10 @@ public class UserController {
     public ResponseEntity<?> check(String email) {
         if(email.trim().equals("")) {
             return ResponseEntity.badRequest()
-                    .body("이메일이 없습니다");
+                    .body("이메일이 없습니다!");
         }
         boolean resultFlag = userService.isDuplicate(email);
-        log.info("{} 중복?? = {}", email, resultFlag);
+        log.info("{} 중복?? - {}", email, resultFlag);
 
         return ResponseEntity.ok().body(resultFlag);
     }
@@ -43,7 +43,7 @@ public class UserController {
             @Validated @RequestBody UserRequestSignUpDTO dto,
             BindingResult result
     ) {
-        log.info("/api/auth/POST - {}", dto);
+        log.info("/api/auth POST - {}", dto);
 
         if(result.hasErrors()) {
             log.warn(result.toString());
@@ -55,7 +55,7 @@ public class UserController {
             UserSignUpResponseDTO responseDTO = userService.create(dto);
             return ResponseEntity.ok()
                     .body(responseDTO);
-        } catch (NoCacheRegionFactoryAvailableException e) {
+        } catch (NoRegisteredArgumentsException e) {
             log.warn("필수 가입 정보를 전달받지 못했습니다.");
             return ResponseEntity.badRequest()
                     .body(e.getMessage());
@@ -64,12 +64,11 @@ public class UserController {
             return ResponseEntity.badRequest()
                     .body(e.getMessage());
         }
-
     }
-    
+
     //로그인 요청 처리
     @PostMapping("/signin")
-    public  ResponseEntity<?> signIn(
+    public ResponseEntity<?> signIn(
             @Validated @RequestBody LoginRequestDTO dto
     ) {
         try {
@@ -77,12 +76,23 @@ public class UserController {
                     = userService.authenticate(dto);
 
             return ResponseEntity.ok().body(responseDTO);
+
         } catch (Exception e) {
             e.printStackTrace();
-            return  ResponseEntity.badRequest()
+            return ResponseEntity.badRequest()
                     .body(e.getMessage());
-
         }
     }
-    
+
+
 }
+
+
+
+
+
+
+
+
+
+
