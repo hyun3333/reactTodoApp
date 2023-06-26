@@ -106,7 +106,7 @@ public class TodoController {
         log.info("modifying dto: {}", requestDTO);
 
         try {
-                    TodoListResponseDTO responseDTO = todoService.update(requestDTO, userInfo.getUserId());
+            TodoListResponseDTO responseDTO = todoService.update(requestDTO, userInfo.getUserId());
             return ResponseEntity.ok().body(responseDTO);
         } catch (RuntimeException e) {
             return ResponseEntity.internalServerError()
